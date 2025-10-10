@@ -39,4 +39,29 @@ It also has a **Predictive aspect**, as the trained agent implicitly forecasts t
 It is not **Descriptive**, because the model is not focused on replicating current human driver behavior. Instead, it seeks to propose better strategies. Nor is it purely **Speculative**, since the experiments are grounded in realistic traffic environments and established simulation frameworks.  
 
 
+## 4. Metrics
+
+
+| **Entity** | **Metrics** | **Description** | **Notes** |
+|-------------|--------------|------------------|------------|
+| **Ego Vehicle** | **Collision Rate** | Fraction of episodes ending in collision. Measures driving safety. | Lower is better; key for safety evaluation. |
+|  | **Average Speed** | Mean longitudinal velocity over an episode. | Indicates efficiency; should respect speed limits. |
+|  | **Lane Change Frequency** | Number of lane changes per episode. | Too high → erratic driving; too low → passive driving. |
+|  | **Reward per Episode** | Total accumulated reward per episode. | Global performance indicator for RL agent. |
+|  | **Speed Limit Compliance** | Fraction of time speed ≤ limit. | Reflects adherence to road rules. |
+|  | **Time-to-Collision (TTC)** | Minimum time before potential collision. | Safety measure; can be averaged per episode. |
+|  | **Episode Duration** | Time until success or termination. | Lower means efficient, but not at cost of safety. |
+| **Other Vehicles** | **Traffic Density** | Number of vehicles per kilometer or per lane. | Affects task difficulty; can be parameterized. |
+|  | **Average Relative Speed** | Mean speed difference between ego and surrounding vehicles. | Influences overtake/merge difficulty. |
+|  | **Aggressiveness Index** | Tendency to accelerate/brake abruptly or follow too closely. | Defines behavior model complexity. |
+|  | **Traffic Flow Stability** | Standard deviation of vehicle speeds in the scene. | Lower = smoother traffic; high = more chaotic. |
+| **Road/Highway** | **Lane Utilization Ratio** | Percentage of time ego uses each lane. | Shows strategic lane use and distribution. |
+|  | **Speed Limit Compliance (Global)** | % of vehicles within legal speed range. | Indicates realism and rule adherence of simulation. |
+|  | **Average Throughput** | Number of vehicles passing a given point per unit time. | Reflects efficiency of entire environment. |
+|  | **Road Occupancy Rate** | Portion of road length occupied by vehicles. | Used to measure congestion level. |
+|  | **Scenario Completion Rate** | Fraction of successful runs (goal reached, no collision). | High completion = stable, effective simulation setup. |
+
+
+
 TODO -> differents algorithms the RL ; 
+
