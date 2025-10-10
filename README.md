@@ -62,6 +62,20 @@ It is not **Descriptive**, because the model is not focused on replicating curre
 |  | **Scenario Completion Rate** | Fraction of successful runs (goal reached, no collision). | High completion = stable, effective simulation setup. |
 
 
+##  5. Indicators
+
+| **Indicator** | **Definition / Formula** | **What It Measures** | **Notes** |
+|----------------|---------------------------|----------------------|------------|
+| **Safety Index (SI)** | Combines collision rate, TTC, and safety violations:<br>`SI = w1*(1 - CollisionRate) + w2*(avg(TTC_norm)) + w3*(1 - ViolationRate)` | Overall driving safety and risk avoidance. | High SI → safer driving policy; weights tuned per experiment. |
+| **Efficiency Index (EI)** | Weighted combination of average speed and completion rate:<br>`EI = w1*(avg_speed / speed_limit) + w2*(CompletionRate)` | Measures traffic efficiency and goal achievement. | Balance between fast progress and task success. |
+| **Comfort Index (CI)** | Inverse of acceleration jerk and lane-change frequency:<br>`CI = 1 - norm(Jerk + α * LaneChangeFreq)` | Reflects smoothness and passenger comfort. | Higher = smoother, more human-like driving. |
+| **Rule Compliance Index (RCI)** | Based on adherence to traffic rules:<br>`RCI = 1 - (SpeedViolations + DistanceViolations) / TotalTime` | How well the agent respects traffic regulations. | Penalizes overspeeding and unsafe following. |
+| **Learning Efficiency (LE)** | `LE = PerformanceScore / TrainingSteps` | How quickly the RL model learns a stable, high-performing policy. | Allows comparison of RL algorithms (e.g., PPO vs SAC). |
+| **Traffic Flow Index (TFI)** | `TFI = Throughput / Density` | Reflects how well the overall traffic moves given congestion. | High TFI → good coordination and lane distribution. |
+| **Environment Stability Index (ESI)** | `ESI = 1 - std(vehicle_speeds) / mean(vehicle_speeds)` | Degree of stability and consistency in traffic flow. | Low variability indicates stable environment. |
+| **Safety–Efficiency Trade-off (SET)** | `SET = β1*(SafetyIndex) + β2*(EfficiencyIndex)` | Evaluates balance between safe and efficient driving. | Useful for comparing different policies’ trade-offs. |
+| **Global Performance Score (GPS)** | Aggregate score combining all KPIs:<br>`GPS = a*SI + b*EI + c*CI + d*RCI` | Single number summarizing overall system performance. | Weight coefficients can be tuned experimentally. |
+
 
 TODO -> differents algorithms the RL ; 
 
