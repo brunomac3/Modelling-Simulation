@@ -1,0 +1,6 @@
+Metric,Value
+Collision Rate,0.9
+Average Speed (m/s),0.3110498785972595
+Avg Lane Changes / Episode,6.4
+Average Reward / Episode,12.985986125655291
+Speed Limit Compliance,1.0
