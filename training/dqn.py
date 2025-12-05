@@ -5,22 +5,22 @@ import highway_env
 import os
 
 AGENT_NAME = "dqn_agent"
-TOTAL_TIMESTEPS = 400_000
+TOTAL_TIMESTEPS = 50_000
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 def make_env():
     env = gym.make("highway-v0")
     env.unwrapped.config.update({
             "observation": {"type": "Kinematics"},
-            "vehicles_count": 35,
-            "duration": 300,
+            "vehicles_count": 60,
+            "duration": 40,
             "simulation_frequency": 15,
             "policy_frequency": 5,
             "reward_speed_range": [20, 32],
             "collision_penalty": -8,
             "right_lane_reward": 0.1,
             "lane_change_reward": -0.03,
-            "high_speed_reward": 0.6,
+            "high_speed_reward": 0.2,
     })
     return env
 
