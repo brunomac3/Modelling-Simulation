@@ -4,7 +4,7 @@ import gymnasium as gym
 import highway_env
 import os
 
-TOTAL_TIMESTEPS = 500_000          # ↑ Increased
+TOTAL_TIMESTEPS = 400_000          # ↑ Increased
 AGENT_NAME = "ppo_agent"
 os.makedirs(AGENT_NAME, exist_ok=True)
 

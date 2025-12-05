@@ -5,7 +5,7 @@ import highway_env
 import os
 
 AGENT_NAME = "sac_agent"
-TOTAL_TIMESTEPS = 600_000
+TOTAL_TIMESTEPS = 400_000
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 def make_env():
