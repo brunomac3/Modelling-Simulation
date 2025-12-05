@@ -29,7 +29,7 @@ env = DummyVecEnv([make_env])
 model = DQN(
     "MlpPolicy",
     env,
-    verbose=1,
+    verbose=0,
     learning_rate=1e-4,
     batch_size=64,
     buffer_size=100_000,

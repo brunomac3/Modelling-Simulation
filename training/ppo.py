@@ -33,7 +33,7 @@ env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_obs=10.)
 model = PPO(
     "MlpPolicy",
     env,
-    verbose=1,
+    verbose=0,
     n_steps=2048,                 # ↑ much better with PPO
     batch_size=256,
     gae_lambda=0.95,

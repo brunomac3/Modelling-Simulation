@@ -30,7 +30,7 @@ env = VecNormalize(env, norm_obs=True, norm_reward=True)
 model = SAC(
     "MlpPolicy",
     env,
-    verbose=1,
+    verbose=0,
     learning_rate=3e-4,
     batch_size=256,
     gamma=0.99,
