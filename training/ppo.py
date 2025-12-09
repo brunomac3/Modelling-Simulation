@@ -4,24 +4,31 @@ import gymnasium as gym
 import highway_env
 import os
 
-TOTAL_TIMESTEPS = 400_000          # ↑ Increased
+# Training configuration
+TOTAL_TIMESTEPS = 200_000  # Balanced: ~20-30 min training, decent performance
 AGENT_NAME = "ppo_agent"
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 def make_env():
     env = gym.make("highway-v0")
     env.unwrapped.config.update({
-
+        # Observation
         "observation": {"type": "Kinematics"},
-        "vehicles_count": 35,
-        "duration": 300,
+        
+        # Traffic density
+        "vehicles_count": 50,  # More traffic = more realistic + harder
+        "duration": 60,  # Shorter episodes = faster learning cycles
+        
+        # Simulation parameters
         "simulation_frequency": 15,
         "policy_frequency": 5,
-        "reward_speed_range": [20, 32],
-        "collision_penalty": -8,
+        
+        # Reward shaping (balanced for safety + efficiency)
+        "reward_speed_range": [20, 30],
+        "collision_penalty": -10,  # Strong penalty for crashes
         "right_lane_reward": 0.1,
-        "lane_change_reward": -0.03,
-        "high_speed_reward": 0.6
+        "lane_change_reward": -0.05,  # Discourage excessive lane changes
+        "high_speed_reward": 0.3,  # Moderate speed reward (not too aggressive)
     })
     return env
 
@@ -33,8 +40,8 @@ env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_obs=10.)
 model = PPO(
     "MlpPolicy",
     env,
-    verbose=0,
-    n_steps=2048,                 # ↑ much better with PPO
+    verbose=1,  # Show training progress
+    n_steps=2048,
     batch_size=256,
     gae_lambda=0.95,
     gamma=0.99,
@@ -43,7 +50,7 @@ model = PPO(
     clip_range=0.2,
     ent_coef=0.01,
     policy_kwargs=dict(
-        net_arch=[256, 256, 128]  # ↑ bigger network
+        net_arch=[256, 256]  # Simplified network for faster training
     ),
 )
 

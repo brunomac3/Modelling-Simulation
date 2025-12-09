@@ -18,17 +18,19 @@ pip install stable-baselines3[extra] highway-env jupyterlab matplotlib pandas
 Train the reinforcement learning agents (run from project root):
 
 ```bash
-# Train PPO agent (~30-60 minutes, 500k timesteps)
-python training/ppo.py
-
-# Train DQN agent (~20-40 minutes, 400k timesteps)
+# Train DQN agent (~15-20 minutes, 150k timesteps)
 python training/dqn.py
 
-# Train SAC agent (~60-90 minutes, 600k timesteps)
-python training/sqn.py
+# Train PPO agent (~20-30 minutes, 200k timesteps)
+python training/ppo.py
+
+# Train SAC agent (~25-35 minutes, 250k timesteps)
+python training/sac.py
 ```
 
 Each script will create a folder (`ppo_agent/`, `dqn_agent/`, `sac_agent/`) containing the trained model.
+
+**Note**: These are balanced configs for quick iteration. If you need better performance, you can increase `TOTAL_TIMESTEPS` in each file (e.g., 500k+ for production models).
 
 ## 4. Evaluate Models (Jupyter Notebook)
 
