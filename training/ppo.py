@@ -3,6 +3,11 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 import gymnasium as gym
 import highway_env
 import os
+import sys
+
+# Import shared environment config
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from env_config import get_env_config
 
 # Training configuration
 TOTAL_TIMESTEPS = 200_000  # Balanced: ~20-30 min training, decent performance
@@ -11,25 +16,8 @@ os.makedirs(AGENT_NAME, exist_ok=True)
 
 def make_env():
     env = gym.make("highway-v0")
-    env.unwrapped.config.update({
-        # Observation
-        "observation": {"type": "Kinematics"},
-        
-        # Traffic density
-        "vehicles_count": 50,  # More traffic = more realistic + harder
-        "duration": 60,  # Shorter episodes = faster learning cycles
-        
-        # Simulation parameters
-        "simulation_frequency": 15,
-        "policy_frequency": 5,
-        
-        # Reward shaping (balanced for safety + efficiency)
-        "reward_speed_range": [20, 30],
-        "collision_penalty": -10,  # Strong penalty for crashes
-        "right_lane_reward": 0.1,
-        "lane_change_reward": -0.05,  # Discourage excessive lane changes
-        "high_speed_reward": 0.3,  # Moderate speed reward (not too aggressive)
-    })
+    # Use shared config to ensure training/evaluation consistency
+    env.unwrapped.config.update(get_env_config())
     return env
 
 # Vectorized + normalization
@@ -61,4 +49,8 @@ model.learn(total_timesteps=TOTAL_TIMESTEPS)
 model.save(os.path.join(AGENT_NAME, "model"))
 env.save(os.path.join(AGENT_NAME, "vec_normalize.pkl"))
 
-print("Training complete!")
+print("\n" + "="*70)
+print("✅ PPO training complete!")
+print(f"📁 Model saved to: {AGENT_NAME}/model.zip")
+print(f"📁 Normalizer saved to: {AGENT_NAME}/vec_normalize.pkl")
+print("="*70)

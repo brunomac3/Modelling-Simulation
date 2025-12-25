@@ -1,56 +1,67 @@
+"""
+DQN Training - Based on Official highway-env Documentation
+Source: https://highway-env.farama.org/quickstart/
+
+This uses the exact same configuration as the official example
+to ensure consistent, quality baseline performance.
+"""
+
 from stable_baselines3 import DQN
-from stable_baselines3.common.vec_env import DummyVecEnv
-import gymnasium as gym
+import gymnasium
 import highway_env
 import os
+import sys
+
+# Import shared environment config
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from env_config import get_env_config
 
 # Training configuration
 AGENT_NAME = "dqn_agent"
-TOTAL_TIMESTEPS = 20_000  # Reccomended for DQN: 20_000
+TOTAL_TIMESTEPS = 20_000  # 20k timesteps (documentation baseline)
 os.makedirs(AGENT_NAME, exist_ok=True)
 
-def make_env():
-    env = gym.make("highway-v0")
-    """ env.unwrapped.config.update({
-        # Observation
-        "observation": {"type": "Kinematics"},
-        
-        # Traffic density
-        "vehicles_count": 50,  # More traffic = more realistic + harder
-        "duration": 60,  # Shorter episodes = faster learning cycles
-        
-        # Simulation parameters
-        "simulation_frequency": 15,
-        "policy_frequency": 5,
-        
-        # Reward shaping (balanced for safety + efficiency)
-        "reward_speed_range": [20, 30],
-        "collision_penalty": -10,  # Strong penalty for crashes
-        "right_lane_reward": 0.1,
-        "lane_change_reward": -0.05,  # Discourage excessive lane changes
-        "high_speed_reward": 0.3,  # Moderate speed reward (not too aggressive)
-    }) """
+print("="*70)
+print("🚗 DQN Training - Official highway-env Baseline")
+print("="*70)
 
-    # opted to take off custom configuration to compare default DQN performance
-    return env
+# Create environment with shared config
+env = gymnasium.make("highway-fast-v0")
+env.unwrapped.config.update(get_env_config())
 
-env = DummyVecEnv([make_env])
+print(f"\nEnvironment Configuration:")
+print(f"  - Vehicles: {env.unwrapped.config['vehicles_count']}")
+print(f"  - Duration: {env.unwrapped.config['duration']}s")
+print(f"  - Policy Frequency: {env.unwrapped.config['policy_frequency']} Hz")
+print(f"  - Collision Penalty: {env.unwrapped.config['collision_reward']}")
+print(f"  - High Speed Reward: {env.unwrapped.config['high_speed_reward']}")
+print(f"\nStarting training for {TOTAL_TIMESTEPS:,} timesteps...")
+print("="*70)
 
-model = DQN('MlpPolicy', env,
-              policy_kwargs=dict(net_arch=[256, 256]),
-              learning_rate=5e-4,
-              buffer_size=15000,
-              learning_starts=200,
-              batch_size=32,
-              gamma=0.8,
-              train_freq=1,
-              gradient_steps=1,
-              target_update_interval=50,
-              verbose=1
-            )
+# Official DQN configuration (from documentation)
+model = DQN(
+    'MlpPolicy',
+    env,
+    policy_kwargs=dict(net_arch=[256, 256]),
+    learning_rate=5e-4,
+    buffer_size=15000,
+    learning_starts=200,
+    batch_size=32,
+    gamma=0.8,
+    train_freq=1,
+    gradient_steps=1,
+    target_update_interval=50,
+    verbose=1,
+    tensorboard_log=f"{AGENT_NAME}/tensorboard/"
+)
 
+# Train
 model.learn(total_timesteps=TOTAL_TIMESTEPS)
 
+# Save
 model.save(os.path.join(AGENT_NAME, "model"))
 
-print("DQN training complete!")
+print("\n" + "="*70)
+print("✅ DQN training complete!")
+print(f"📁 Model saved to: {AGENT_NAME}/model.zip")
+print("="*70)
