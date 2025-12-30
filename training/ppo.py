@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from env_config import get_env_config
 
 # Training configuration
-TOTAL_TIMESTEPS = 200_000  # Balanced: ~20-30 min training, decent performance
+TOTAL_TIMESTEPS = 150_000  # 150k timesteps for fair comparison
 AGENT_NAME = "ppo_agent"
 os.makedirs(AGENT_NAME, exist_ok=True)
 

@@ -18,7 +18,7 @@ from env_config import get_env_config
 
 # Training configuration
 AGENT_NAME = "dqn_agent"
-TOTAL_TIMESTEPS = 20_000  # 20k timesteps (documentation baseline)
+TOTAL_TIMESTEPS = 150_000  # 150k timesteps for fair comparison
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 print("="*70)
