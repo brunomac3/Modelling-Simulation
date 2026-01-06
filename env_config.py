@@ -63,4 +63,5 @@ def get_continuous_env_config():
     config["offroad_terminal"] = True  # STOP if going off-road
     config["collision_reward"] = -10  # Stronger penalty for crashes
     config["normalize_reward"] = False  # Don't normalize to see real penalties
+    config["policy_frequency"] = 2  # Smoother continuous control for SAC
     return config

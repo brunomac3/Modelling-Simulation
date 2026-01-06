@@ -14,11 +14,11 @@ import sys
 
 # Import shared environment config
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from env_config import get_env_config
+from env_config import get_continuous_env_config
 
 # Training configuration
 AGENT_NAME = "sac_agent"
-TOTAL_TIMESTEPS = 2_000
+TOTAL_TIMESTEPS = 200_000
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 print("="*70)
@@ -26,13 +26,10 @@ print("🚗 SAC Training - Continuous Action Space")
 print("="*70)
 
 # Create environment and configure for continuous actions
-env = gymnasium.make("highway-fast-v0")
+env = gymnasium.make("highway-v0")
 
-# Get base config and add continuous action configuration
-config = get_env_config()
-config["action"] = {
-    "type": "ContinuousAction"
-}
+# Get continuous config (bounded actions + offroad termination)
+config = get_continuous_env_config()
 
 # Apply configuration
 env.unwrapped.config.update(config)
@@ -51,7 +48,7 @@ if not hasattr(env.action_space, 'shape'):
 print(f"✅ Continuous action space verified!")
 
 print(f"\nStarting training for {TOTAL_TIMESTEPS:,} timesteps...")
-print("This will take ~30-40 minutes...")
+print("This can take a while; check your machine speed for ETA...")
 print("="*70)
 
 # SAC hyperparameters for highway-env
