@@ -6,6 +6,8 @@ This ensures the agent is tested in the same environment it was trained in.
 Source: https://highway-env.farama.org/quickstart/
 """
 
+import numpy as np
+
 # Official highway-v0 default configuration (from documentation)
 # This is the EXACT config used in the official examples
 ENV_CONFIG = {
@@ -47,3 +49,18 @@ ENV_CONFIG = {
 def get_env_config():
     """Returns a copy of the environment configuration."""
     return ENV_CONFIG.copy()
+
+def get_continuous_env_config():
+    """Returns environment config for continuous action space (for SAC)."""
+    config = ENV_CONFIG.copy()
+    # For highway-env, the action config must be a dict with 'type' key
+    config["action"] = {
+        "type": "ContinuousAction",
+        "acceleration_range": [-5.0, 5.0],
+        "steering_range": [-0.5, 0.5],  # More conservative steering
+    }
+    # Safety constraints
+    config["offroad_terminal"] = True  # STOP if going off-road
+    config["collision_reward"] = -10  # Stronger penalty for crashes
+    config["normalize_reward"] = False  # Don't normalize to see real penalties
+    return config
