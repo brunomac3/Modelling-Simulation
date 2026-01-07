@@ -64,6 +64,23 @@ Then for **each model**:
 
 ---
 
+## ✅ Practical CLI Evaluation (Recommended)
+
+For reproducible metrics, use the evaluation script instead of the notebook:
+
+```bash
+source venv/bin/activate
+python scripts/eval.py --agent dqn
+python scripts/eval.py --agent ppo
+python scripts/eval.py --agent sac
+python scripts/eval.py --agent td3
+```
+
+Notes:
+- The script automatically loads PPO's `VecNormalize`.
+- SAC/TD3 use the same reward shaping as training.
+- Results are saved to `{agent}_agent/instant_runs/` and `{agent}_agent/summary/`.
+
 ### Step 3: Compare All Models
 
 After evaluating all 3 models:
