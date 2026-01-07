@@ -20,10 +20,12 @@ class LaneCenteringOvertakeReward(gym.Wrapper):
         env: gym.Env,
         lane_center_weight: float = 0.2,
         overtake_reward: float = 0.2,
+        steering_penalty_weight: float = 0.05,
     ) -> None:
         super().__init__(env)
         self.lane_center_weight = lane_center_weight
         self.overtake_reward = overtake_reward
+        self.steering_penalty_weight = steering_penalty_weight
         self._last_rel_x = {}
 
     def reset(self, **kwargs):
@@ -58,7 +60,14 @@ class LaneCenteringOvertakeReward(gym.Wrapper):
                 overtake_bonus += self.overtake_reward
             self._last_rel_x[key] = rel_x
 
-        reward += lane_penalty + overtake_bonus
+        steering_penalty = 0.0
+        if hasattr(self.env.unwrapped, "action_type"):
+            last_action = getattr(self.env.unwrapped.action_type, "last_action", None)
+            if last_action is not None and len(last_action) > 1:
+                steering_penalty = -self.steering_penalty_weight * abs(last_action[1])
+
+        reward += lane_penalty + overtake_bonus + steering_penalty
         info["lane_center_penalty"] = lane_penalty
         info["overtake_bonus"] = overtake_bonus
+        info["steering_penalty"] = steering_penalty
         return obs, reward, done, truncated, info

@@ -19,7 +19,7 @@ from reward_wrappers import LaneCenteringOvertakeReward
 
 # Training configuration
 AGENT_NAME = "sac_agent"
-TOTAL_TIMESTEPS = 200_000
+TOTAL_TIMESTEPS = 400_000
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 print("="*70)
