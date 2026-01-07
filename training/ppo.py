@@ -11,7 +11,7 @@ from env_config import get_env_config, get_ppo_env_config
 from reward_wrappers import LaneCenteringOvertakeReward
 
 # Training configuration
-TOTAL_TIMESTEPS = 200_000  # 400k timesteps for better continuous-style shaping
+TOTAL_TIMESTEPS = 400_000  # 400k timesteps for better continuous-style shaping
 AGENT_NAME = "ppo_agent"
 os.makedirs(AGENT_NAME, exist_ok=True)
 

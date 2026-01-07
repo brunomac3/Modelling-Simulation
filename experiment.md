@@ -19,6 +19,7 @@ Result: SAC improved but still drifted and did not center in lane.
 - Fixed success definition (time-limit is not failure).
 - Added a CLI evaluator (`scripts/eval.py`) to ensure reproducibility.
 - Added PPO VecNormalize loading in CLI and notebook evaluation.
+- Adjusted notebook PPO stepping to handle vec-env shapes.
 
 Result: metrics now reflect actual behavior and match visuals.
 
@@ -55,3 +56,29 @@ Result: PPO expected to become less passive after retraining.
 - Increased steering penalty to 0.08.
 
 Result: Intended to reduce drifting and smooth transitions for TD3/SAC.
+
+8) TD3 re-evaluation after pull + tuning
+- Re-ran TD3 evaluation with the current config and reward shaping.
+- Summary (2026-01-07): avg_speed ~31.97, lane_changes ~16.4, collision 0.2, success 0.8.
+
+Result: TD3 stayed fast but still showed aggressive behavior (high lane changes, low TTC).
+
+9) TD3 de-aggression tweaks
+- Reduced overtake reward to 0.1 for TD3.
+- Added lane-change penalty (0.1) to discourage multi-lane drift.
+- Lowered high-speed pressure and raised collision penalty slightly.
+
+Result: Expected to reduce unsafe overtakes and improve comfort after retraining.
+
+10) PPO speed/overtake boost
+- Increased PPO high-speed reward and target speed range.
+- Increased PPO overtake reward.
+
+Result: Intended to make PPO less passive and more willing to pass.
+
+11) Evaluation snapshots (after fixes)
+- DQN (2026-01-07): avg_speed ~28.0, lane_changes ~12.3, collision 0.40, success 0.60.
+- PPO (2026-01-07): avg_speed ~20.4, lane_changes ~2.5, collision 0.00, success 1.00.
+- SAC (2026-01-06 → 2026-01-07): avg_speed ~19.4 → ~31.3, collision 0.05 → 0.25.
+- TD3 (2026-01-07): avg_speed ~31.9, lane_changes ~16.4, collision 0.20, success 0.80.
+

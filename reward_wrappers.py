@@ -21,16 +21,23 @@ class LaneCenteringOvertakeReward(gym.Wrapper):
         lane_center_weight: float = 0.3,
         overtake_reward: float = 0.2,
         steering_penalty_weight: float = 0.08,
+        lane_change_penalty_weight: float = 0.0,
     ) -> None:
         super().__init__(env)
         self.lane_center_weight = lane_center_weight
         self.overtake_reward = overtake_reward
         self.steering_penalty_weight = steering_penalty_weight
+        self.lane_change_penalty_weight = lane_change_penalty_weight
         self._last_rel_x = {}
+        self._previous_lane_index = None
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
         self._last_rel_x = {}
+        ego = self.env.unwrapped.vehicle
+        self._previous_lane_index = (
+            ego.lane_index[2] if ego.lane_index is not None else None
+        )
         return obs, info
 
     def step(self, action):
@@ -66,8 +73,21 @@ class LaneCenteringOvertakeReward(gym.Wrapper):
             if last_action is not None and len(last_action) > 1:
                 steering_penalty = -self.steering_penalty_weight * abs(last_action[1])
 
-        reward += lane_penalty + overtake_bonus + steering_penalty
+        lane_change_penalty = 0.0
+        current_lane_index = (
+            ego.lane_index[2] if ego.lane_index is not None else None
+        )
+        if (
+            self._previous_lane_index is not None
+            and current_lane_index is not None
+            and current_lane_index != self._previous_lane_index
+        ):
+            lane_change_penalty = -self.lane_change_penalty_weight
+        self._previous_lane_index = current_lane_index
+
+        reward += lane_penalty + overtake_bonus + steering_penalty + lane_change_penalty
         info["lane_center_penalty"] = lane_penalty
         info["overtake_bonus"] = overtake_bonus
         info["steering_penalty"] = steering_penalty
+        info["lane_change_penalty"] = lane_change_penalty
         return obs, reward, done, truncated, info

@@ -20,7 +20,7 @@ from reward_wrappers import LaneCenteringOvertakeReward
 
 # Training configuration
 AGENT_NAME = "td3_agent"
-TOTAL_TIMESTEPS = 200_000
+TOTAL_TIMESTEPS = 400_000
 os.makedirs(AGENT_NAME, exist_ok=True)
 
 print("=" * 70)
@@ -30,8 +30,16 @@ print("=" * 70)
 # Create environment and configure for continuous actions
 env = gymnasium.make("highway-v0")
 config = get_continuous_env_config()
+# Slightly reduce speed pressure for TD3 to avoid aggressive passes
+config["high_speed_reward"] = 0.5
+config["reward_speed_range"] = [22, 32]
+config["collision_reward"] = -6
 env.unwrapped.config.update(config)
-env = LaneCenteringOvertakeReward(env)
+env = LaneCenteringOvertakeReward(
+    env,
+    overtake_reward=0.1,
+    lane_change_penalty_weight=0.1,
+)
 env.reset()
 
 print("\nEnvironment Configuration:")
