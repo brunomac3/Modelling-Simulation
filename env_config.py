@@ -55,6 +55,8 @@ def get_ppo_env_config():
     """Returns environment config for PPO (less right-lane bias)."""
     config = ENV_CONFIG.copy()
     config["right_lane_reward"] = 0.05
+    config["high_speed_reward"] = 0.8
+    config["reward_speed_range"] = [24, 34]
     return config
 
 def get_continuous_env_config():

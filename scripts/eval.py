@@ -99,7 +99,9 @@ def main() -> None:
         env = VecNormalize.load(norm_path, vec_env)
         env.training = False
         env.norm_reward = False
-        obs = env.reset(seed=args.seed)
+        if args.seed is not None:
+            env.seed(args.seed)
+        obs = env.reset()
         eval_env = env.envs[0]
     else:
         env = base_env
@@ -123,7 +125,9 @@ def main() -> None:
 
     for ep in range(args.episodes):
         if args.agent == "ppo":
-            obs = env.reset(seed=args.seed)[0]
+            if args.seed is not None:
+                env.seed(args.seed)
+            obs = env.reset()[0]
         else:
             obs, _ = env.reset(seed=args.seed)
         done = truncated = False
@@ -146,11 +150,17 @@ def main() -> None:
         while not (done or truncated):
             action, _ = model.predict(obs, deterministic=True)
             if args.agent == "ppo":
-                obs, reward, done, info = env.step(action)
+                if not hasattr(action, "__len__") or np.shape(action) == ():
+                    action = [action]
+                obs, rewards, dones, infos = env.step(action)
+                reward = float(rewards[0])
+                done = bool(dones[0])
+                info = infos[0]
                 truncated = False
             else:
                 obs, reward, done, truncated, info = env.step(action)
-            ep_reward += float(reward)
+                reward = float(reward)
+            ep_reward += reward
             ep_steps += 1
 
             ego_vehicle = eval_env.unwrapped.vehicle
