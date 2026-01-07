@@ -64,7 +64,7 @@ def get_continuous_env_config():
     config["action"] = {
         "type": "ContinuousAction",
         "acceleration_range": [-5.0, 5.0],
-        "steering_range": [-0.3, 0.3],  # Tighter steering to reduce drifting
+        "steering_range": [-0.2, 0.2],  # Tighter steering to reduce drifting
     }
     # Safety constraints
     config["offroad_terminal"] = True  # STOP if going off-road

@@ -18,9 +18,9 @@ class LaneCenteringOvertakeReward(gym.Wrapper):
     def __init__(
         self,
         env: gym.Env,
-        lane_center_weight: float = 0.2,
+        lane_center_weight: float = 0.3,
         overtake_reward: float = 0.2,
-        steering_penalty_weight: float = 0.05,
+        steering_penalty_weight: float = 0.08,
     ) -> None:
         super().__init__(env)
         self.lane_center_weight = lane_center_weight
