@@ -57,11 +57,15 @@ def get_continuous_env_config():
     config["action"] = {
         "type": "ContinuousAction",
         "acceleration_range": [-5.0, 5.0],
-        "steering_range": [-0.5, 0.5],  # More conservative steering
+        "steering_range": [-0.3, 0.3],  # Tighter steering to reduce drifting
     }
     # Safety constraints
     config["offroad_terminal"] = True  # STOP if going off-road
-    config["collision_reward"] = -10  # Stronger penalty for crashes
-    config["normalize_reward"] = False  # Don't normalize to see real penalties
+    # Balance speed vs safety for continuous control
+    config["collision_reward"] = -5  # Less conservative than -10
+    config["right_lane_reward"] = 0.05  # Reduce right-lane bias to encourage overtakes
+    config["high_speed_reward"] = 0.6  # Encourage maintaining higher speeds
+    config["reward_speed_range"] = [22, 32]  # Shift target speed upward
+    config["normalize_reward"] = False  # Keep raw penalties visible
     config["policy_frequency"] = 2  # Smoother continuous control for SAC
     return config
