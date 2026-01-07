@@ -50,6 +50,13 @@ def get_env_config():
     """Returns a copy of the environment configuration."""
     return ENV_CONFIG.copy()
 
+
+def get_ppo_env_config():
+    """Returns environment config for PPO (less right-lane bias)."""
+    config = ENV_CONFIG.copy()
+    config["right_lane_reward"] = 0.05
+    return config
+
 def get_continuous_env_config():
     """Returns environment config for continuous action space (for SAC)."""
     config = ENV_CONFIG.copy()

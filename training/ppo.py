@@ -7,7 +7,8 @@ import sys
 
 # Import shared environment config
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from env_config import get_env_config
+from env_config import get_env_config, get_ppo_env_config
+from reward_wrappers import LaneCenteringOvertakeReward
 
 # Training configuration
 TOTAL_TIMESTEPS = 150_000  # 150k timesteps for fair comparison
@@ -17,7 +18,8 @@ os.makedirs(AGENT_NAME, exist_ok=True)
 def make_env():
     env = gym.make("highway-v0")
     # Use shared config to ensure training/evaluation consistency
-    env.unwrapped.config.update(get_env_config())
+    env.unwrapped.config.update(get_ppo_env_config())
+    env = LaneCenteringOvertakeReward(env)
     return env
 
 # Vectorized + normalization
