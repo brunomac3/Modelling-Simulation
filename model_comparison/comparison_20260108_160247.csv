@@ -1,0 +1,5 @@
+Model,GPS,Safety (SI),Efficiency (EI),Comfort (CI),Compliance (RCI),Collision Rate,Success Rate,Avg Speed (m/s),Avg TTC (s),Avg Jerk,Lane Changes,Avg Reward
+DQN,0.39,0.6000000000000001,0.0,1.0,0.0,0.0,0.0,0.0,-1,0.0,0.0,0.0
+PPO,0.39,0.6000000000000001,0.0,1.0,0.0,0.0,0.0,0.0,-1,0.0,0.0,0.0
+SAC,0.39,0.6000000000000001,0.0,1.0,0.0,0.0,0.0,0.0,-1,0.0,0.0,0.0
+TD3,0.39,0.6000000000000001,0.0,1.0,0.0,0.0,0.0,0.0,-1,0.0,0.0,0.0
