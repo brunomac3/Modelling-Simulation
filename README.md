@@ -120,10 +120,72 @@ All vehicles comply with physical kinematic constraints (e.g., maximum accelerat
 To implement and evaluate the autonomous driving simulation, a combination of open-source simulation environments, reinforcement learning libraries, and analysis tools are employed.
 
 **Simulation Tools:**
-The project utilizes HighwayEnv for generating realistic highway traffic scenarios. These platforms provide controllable conditions for defining lane configurations, traffic densities, and vehicle behaviors, ensuring reproducible experiments.
+The project utilizes HighwayEnv for generating realistic highway traffic scenarios. The environment configuration follows the official highway-env baseline to ensure reproducible, high-quality results.
 
 **Programming Environment:**
-Development and experimentation are conducted in Python 3.10, leveraging the Gymnasium interface for consistent agent–environment interactions. This setup allows modular testing of different control policies and reward functions.
+Development and experimentation are conducted in Python 3.10+, leveraging the Gymnasium interface for consistent agent–environment interactions. All training and evaluation use a shared configuration file (`env_config.py`) to guarantee consistency.
+
+**Reinforcement Learning:**
+Three algorithms are implemented using Stable-Baselines3:
+- **DQN** (Deep Q-Network) - Official baseline, 20k timesteps
+- **PPO** (Proximal Policy Optimization) - 100k timesteps with VecNormalize
+- **SAC** (Soft Actor-Critic) - 150k timesteps for exploration-exploitation balance
 
 **Evaluation and Visualization:**
-Performance metrics and training progress are monitored through TensorBoard and custom data analysis scripts.
+Performance metrics and training progress are monitored through TensorBoard and custom data analysis scripts. A comprehensive evaluation notebook (`highway_gym.ipynb`) provides:
+1. Episode simulation with visual rendering
+2. Performance indicator calculation (SI, EI, CI, RCI, GPS)
+3. Visualization charts
+4. Multi-model comparison
+
+**Configuration Management:**
+A centralized configuration system (`env_config.py`) ensures training and evaluation environments are identical, preventing common issues with environment mismatch.
+
+---
+
+## 11. Repository Structure
+
+```
+/home/jmffelisberto/Desktop/ms/
+├── env_config.py              # Shared environment configuration
+├── training/
+│   ├── dqn.py                # DQN training (official baseline)
+│   ├── ppo.py                # PPO training
+│   └── sac.py                # SAC training
+├── highway_gym.ipynb         # Evaluation and analysis notebook
+├── dqn_agent/                # DQN model and results
+├── ppo_agent/                # PPO model and results
+├── sac_agent/                # SAC model and results
+├── BASELINE_SETUP.md         # Detailed setup documentation
+├── ENV_CONFIG_README.md      # Configuration explanation
+├── SETUP.md                  # Quick start guide
+└── README.md                 # This file
+```
+
+---
+
+## 12. Quick Start
+
+### Installation
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install stable-baselines3[extra] highway-env jupyterlab matplotlib pandas
+```
+
+### Training
+```bash
+python training/dqn.py   # ~10-15 min (official baseline)
+python training/ppo.py   # ~20-30 min
+python training/sac.py   # ~30-40 min
+```
+
+### Evaluation
+```bash
+jupyter-lab
+# Open highway_gym.ipynb
+# Set AGENT_TYPE = "dqn" (or "ppo", "sac")
+# Run cells sequentially
+```
+
+For detailed documentation, see `BASELINE_SETUP.md`.

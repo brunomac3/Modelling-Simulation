@@ -1,0 +1,14 @@
+Metric,Value
+Collision Rate,0.94
+Success Rate,0.0
+Average Speed (m/s),0.30514058470726013
+Avg Episode Duration (s),5.752413682937622
+Avg Steps per Episode,18.3
+Avg Lane Changes / Episode,0.0
+Average Reward / Episode,14.440720987654327
+Speed Limit Compliance,1.0
+Avg Jerk (Comfort),0.05892941355705261
+Max Jerk (Worst Case),0.3125
+Avg Time-to-Collision (s),-1.0
+Min Time-to-Collision (s),-1.0
+TTC Violation Rate,0.0
