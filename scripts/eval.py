@@ -35,6 +35,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--episodes", type=int, default=20, help="Number of episodes.")
     parser.add_argument(
+        "--runs",
+        type=int,
+        default=1,
+        help="Number of repeated evaluation runs.",
+    )
+    parser.add_argument(
         "--render",
         action="store_true",
         help="Enable human rendering (slower).",
@@ -99,13 +105,9 @@ def main() -> None:
         env = VecNormalize.load(norm_path, vec_env)
         env.training = False
         env.norm_reward = False
-        if args.seed is not None:
-            env.seed(args.seed)
-        obs = env.reset()
         eval_env = env.envs[0]
     else:
         env = base_env
-        obs, _ = env.reset(seed=args.seed)
         eval_env = env
 
     print("\n" + "=" * 70)
@@ -120,139 +122,149 @@ def main() -> None:
     print(f"Policy frequency: {config['policy_frequency']} Hz")
     print("=" * 70 + "\n")
 
-    all_episode_stats = []
     SAFE_TTC_THRESHOLD = 2.0
-
-    for ep in range(args.episodes):
-        if args.agent == "ppo":
+    for run_idx in range(args.runs):
+        all_episode_stats = []
+        print(f"\nRun {run_idx + 1}/{args.runs}")
+        for ep in range(args.episodes):
             if args.seed is not None:
-                env.seed(args.seed)
-            obs = env.reset()[0]
-        else:
-            obs, _ = env.reset(seed=args.seed)
-        done = truncated = False
-
-        ep_reward = 0.0
-        ep_steps = 0
-        ep_speed_sum = 0.0
-        ep_lane_changes = 0
-
-        previous_speed = 0.0
-        previous_acc = 0.0
-        jerk_values = []
-        ttc_values = []
-
-        ego_vehicle = eval_env.unwrapped.vehicle
-        previous_lane_index = (
-            ego_vehicle.lane_index[2] if ego_vehicle.lane_index is not None else None
-        )
-
-        while not (done or truncated):
-            action, _ = model.predict(obs, deterministic=True)
-            if args.agent == "ppo":
-                if not hasattr(action, "__len__") or np.shape(action) == ():
-                    action = [action]
-                obs, rewards, dones, infos = env.step(action)
-                reward = float(rewards[0])
-                done = bool(dones[0])
-                info = infos[0]
-                truncated = False
+                episode_seed = args.seed + (run_idx * 1000) + ep
             else:
-                obs, reward, done, truncated, info = env.step(action)
-                reward = float(reward)
-            ep_reward += reward
-            ep_steps += 1
+                episode_seed = None
+            if args.agent == "ppo":
+                if episode_seed is not None:
+                    env.seed(episode_seed)
+                obs = env.reset()[0]
+            else:
+                obs, _ = env.reset(seed=episode_seed)
+            done = truncated = False
+
+            ep_reward = 0.0
+            ep_steps = 0
+            ep_speed_sum = 0.0
+            ep_lane_changes = 0
+
+            previous_speed = 0.0
+            previous_acc = 0.0
+            jerk_values = []
+            ttc_values = []
 
             ego_vehicle = eval_env.unwrapped.vehicle
-            ego_pos = ego_vehicle.position
-            ego_speed = ego_vehicle.speed
-            ep_speed_sum += ego_speed
-
-            acc = ego_speed - previous_speed
-            jerk = acc - previous_acc
-            jerk_values.append(abs(jerk))
-            previous_speed = ego_speed
-            previous_acc = acc
-
-            min_ttc = float("inf")
-            for other in eval_env.unwrapped.road.vehicles:
-                if other is ego_vehicle:
-                    continue
-                if ego_vehicle.lane_index is None or other.lane_index is None:
-                    continue
-                if ego_vehicle.lane_index[2] != other.lane_index[2]:
-                    continue
-                rel_x = other.position[0] - ego_pos[0]
-                if rel_x <= 0:
-                    continue
-                rel_v = ego_speed - other.speed
-                if rel_v > 0.01:
-                    ttc = rel_x / rel_v
-                    min_ttc = min(min_ttc, ttc)
-
-            if min_ttc != float("inf"):
-                ttc_values.append(min_ttc)
-
-            current_lane_index = (
-                ego_vehicle.lane_index[2]
-                if ego_vehicle.lane_index is not None
-                else None
+            previous_lane_index = (
+                ego_vehicle.lane_index[2] if ego_vehicle.lane_index is not None else None
             )
-            if (
-                previous_lane_index is not None
-                and current_lane_index is not None
-                and current_lane_index != previous_lane_index
-            ):
-                ep_lane_changes += 1
-            previous_lane_index = current_lane_index
 
-        avg_speed = ep_speed_sum / (ep_steps + 1e-6)
-        avg_jerk = float(np.mean(jerk_values)) if jerk_values else 0.0
-        max_jerk = float(np.max(jerk_values)) if jerk_values else 0.0
-        avg_ttc = float(np.mean(ttc_values)) if ttc_values else -1.0
-        min_ttc = float(np.min(ttc_values)) if ttc_values else -1.0
-        ttc_violations = sum(t < SAFE_TTC_THRESHOLD for t in ttc_values)
-        ttc_violation_rate = ttc_violations / (ep_steps + 1e-6)
+            while not (done or truncated):
+                action, _ = model.predict(obs, deterministic=True)
+                if args.agent == "ppo":
+                    if not hasattr(action, "__len__") or np.shape(action) == ():
+                        action = [action]
+                    obs, rewards, dones, infos = env.step(action)
+                    reward = float(rewards[0])
+                    done = bool(dones[0])
+                    info = infos[0]
+                    truncated = False
+                else:
+                    obs, reward, done, truncated, info = env.step(action)
+                    reward = float(reward)
+                ep_reward += reward
+                ep_steps += 1
 
-        all_episode_stats.append(
-            {
-                "episode": ep + 1,
-                "total_reward": ep_reward,
-                "steps": ep_steps,
-                "avg_speed_ms": avg_speed,
-                "lane_changes": ep_lane_changes,
-                "avg_jerk": avg_jerk,
-                "max_jerk": max_jerk,
-                "avg_ttc": avg_ttc,
-                "min_ttc": min_ttc,
-                "ttc_violation_rate": ttc_violation_rate,
-                "collision": info.get("crashed", False),
-                "success": not info.get("crashed", False),
-            }
+                ego_vehicle = eval_env.unwrapped.vehicle
+                ego_pos = ego_vehicle.position
+                ego_speed = ego_vehicle.speed
+                ep_speed_sum += ego_speed
+
+                acc = ego_speed - previous_speed
+                jerk = acc - previous_acc
+                jerk_values.append(abs(jerk))
+                previous_speed = ego_speed
+                previous_acc = acc
+
+                min_ttc = float("inf")
+                for other in eval_env.unwrapped.road.vehicles:
+                    if other is ego_vehicle:
+                        continue
+                    if ego_vehicle.lane_index is None or other.lane_index is None:
+                        continue
+                    if ego_vehicle.lane_index[2] != other.lane_index[2]:
+                        continue
+                    rel_x = other.position[0] - ego_pos[0]
+                    if rel_x <= 0:
+                        continue
+                    rel_v = ego_speed - other.speed
+                    if rel_v > 0.01:
+                        ttc = rel_x / rel_v
+                        min_ttc = min(min_ttc, ttc)
+
+                if min_ttc != float("inf"):
+                    ttc_values.append(min_ttc)
+
+                current_lane_index = (
+                    ego_vehicle.lane_index[2]
+                    if ego_vehicle.lane_index is not None
+                    else None
+                )
+                if (
+                    previous_lane_index is not None
+                    and current_lane_index is not None
+                    and current_lane_index != previous_lane_index
+                ):
+                    ep_lane_changes += 1
+                previous_lane_index = current_lane_index
+
+            avg_speed = ep_speed_sum / (ep_steps + 1e-6)
+            avg_jerk = float(np.mean(jerk_values)) if jerk_values else 0.0
+            max_jerk = float(np.max(jerk_values)) if jerk_values else 0.0
+            avg_ttc = float(np.mean(ttc_values)) if ttc_values else -1.0
+            min_ttc = float(np.min(ttc_values)) if ttc_values else -1.0
+            ttc_violations = sum(t < SAFE_TTC_THRESHOLD for t in ttc_values)
+            ttc_violation_rate = ttc_violations / (ep_steps + 1e-6)
+
+            all_episode_stats.append(
+                {
+                    "episode": ep + 1,
+                    "total_reward": ep_reward,
+                    "steps": ep_steps,
+                    "avg_speed_ms": avg_speed,
+                    "lane_changes": ep_lane_changes,
+                    "avg_jerk": avg_jerk,
+                    "max_jerk": max_jerk,
+                    "avg_ttc": avg_ttc,
+                    "min_ttc": min_ttc,
+                    "ttc_violation_rate": ttc_violation_rate,
+                    "collision": info.get("crashed", False),
+                    "success": not info.get("crashed", False),
+                }
+            )
+
+            print(
+                f"Episode {ep+1}/{args.episodes}: Reward={ep_reward:.2f}, "
+                f"Steps={ep_steps}, Crashed={info.get('crashed', False)}"
+            )
+
+        df = pd.DataFrame(all_episode_stats)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_tag = f"run{run_idx + 1}_"
+
+        df.to_csv(f"{agent_dir}/instant_runs/{run_tag}run_{timestamp}.csv", index=False)
+        df.mean(numeric_only=True).to_frame("Value").to_csv(
+            f"{agent_dir}/summary/{run_tag}summary_{timestamp}.csv"
         )
 
+        print(f"\n{'='*70}")
+        print(f"✅ {args.agent.upper()} Run {run_idx + 1} Complete!")
         print(
-            f"Episode {ep+1}/{args.episodes}: Reward={ep_reward:.2f}, "
-            f"Steps={ep_steps}, Crashed={info.get('crashed', False)}"
+            f"📁 Results saved to: {agent_dir}/instant_runs/{run_tag}run_{timestamp}.csv"
         )
+        print(f"{'='*70}")
 
     if args.agent == "ppo":
         env.close()
     else:
         env.close()
 
-    df = pd.DataFrame(all_episode_stats)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    df.to_csv(f"{agent_dir}/instant_runs/run_{timestamp}.csv", index=False)
-    df.mean(numeric_only=True).to_frame("Value").to_csv(
-        f"{agent_dir}/summary/summary_{timestamp}.csv"
-    )
-
-    print(f"\n{'='*70}")
-    print(f"✅ {args.agent.upper()} Evaluation Complete!")
-    print(f"📁 Results saved to: {agent_dir}/instant_runs/run_{timestamp}.csv")
-    print(f"{'='*70}")
+    print(f"\n✅ {args.agent.upper()} Evaluation Complete!")
 
 
 if __name__ == "__main__":

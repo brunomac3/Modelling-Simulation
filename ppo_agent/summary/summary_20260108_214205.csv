@@ -1,0 +1,13 @@
+,Value
+episode,10.5
+total_reward,29.514856514334678
+steps,40.0
+avg_speed_ms,20.90589507211177
+lane_changes,3.25
+avg_jerk,1.628932577383545
+max_jerk,21.835738839387634
+avg_ttc,389.36880445696016
+min_ttc,14.055129506184215
+ttc_violation_rate,0.0
+collision,0.0
+success,1.0
