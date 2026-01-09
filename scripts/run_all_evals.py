@@ -47,6 +47,7 @@ def main() -> None:
 
     subprocess.run(["python", "scripts/aggregate_results.py"], check=True)
     subprocess.run(["python", "scripts/plot_results.py"], check=True)
+    subprocess.run(["python", "scripts/plot_indicators.py"], check=True)
 
 
 if __name__ == "__main__":
