@@ -1,191 +1,139 @@
-## 1. Topic
+# Reinforcement Learning for Autonomous Highway Navigation
 
-This project focuses on the simulation of highway driving scenarios to train and evaluate an autonomous vehicle (ego car) capable of performing maneuvers such as lane changing, merging, and overtaking in dynamic traffic environments. The study leverages reinforcement learning to enable the ego vehicle to make sequential decisions that balance safety, efficiency, and compliance with traffic regulations. Through interaction with a simulated environment, the RL agent learns optimal driving behaviors that adapt to varying traffic densities and vehicle behaviors.
-
-
-## 2. Problem Formulation
-
-The problem addressed in this study is the design and implementation of a simulation framework that enables an autonomous vehicle to learn safe and efficient driving strategies in realistic, dynamic traffic environments. The system must account for diverse traffic conditions, including varying vehicle densities, aggressiveness levels, and speed distributions, to ensure robustness and adaptability of the learned policy.
-
-The main challenge lies in enabling the reinforcement learning agent (ego vehicle) to make effective driving decisions - such as when to change lanes, accelerate, or brake - while minimizing the risk of collisions and maintaining compliance with road rules. The simulation environment must therefore balance realism, controllability, and computational efficiency to allow for effective model training and evaluation.
-
-The ultimate goal is to optimize the vehicle’s driving policy for both safety (avoiding collisions and unsafe maneuvers) and efficiency (maintaining smooth traffic flow and timely goal completion) under a range of traffic scenarios.
-
-## 3. Objectives
-
-The primary objectives of this project are:
-
-- To train a reinforcement learning-based driving policy capable of performing safe, efficient, and compliant maneuvers in multi-vehicle highway scenarios.
-
-- To evaluate the performance of the trained policy using key performance indicators (KPIs) such as safety metrics, efficiency indices, and comfort measures.
-
-- To compare and analyze different reinforcement learning algorithms - such as Proximal Policy Optimization (PPO), Deep Q-Network (DQN), and Soft Actor-Critic (SAC) - to determine their relative effectiveness in autonomous driving tasks.
-
-These objectives align with the broader goal of developing decision-support models that enhance the reliability and performance of autonomous vehicles in realistic, dynamic environments.
-
-
-## 4. Main Entities  
-
-- **Autonomous Vehicle (Ego Car)**  
-  - The reinforcement learning agent we are training.  
-  - Makes driving decisions (lane changing, merging, overtaking).  
-  - Learns through interaction with the environment.  
-
-- **Other Vehicles (Traffic Environment)**  
-  - Surrounding cars driven by predefined behavior models.  
-  - Provide dynamic obstacles and interactions.  
-  - Influence task difficulty (traffic density, aggressiveness, speed distribution).  
-
-- **Road/Highway Environment**  
-  - Multi-lane highway with traffic flow.  
-  - Defines constraints: lanes, speed limits, road length, entry/exit ramps.  
-  - Provides sensory input to the ego vehicle (positions, velocities).  
-
-(**Note**: while the RL algorithm, reward function, and evaluation metrics play a central role in how the simulation operates, they are considered modeling components rather than entities of the traffic system itself.)
+A comparative study of discrete and continuous control RL algorithms (DQN, PPO, SAC, TD3) for autonomous highway driving using the Highway-Env simulation platform.
 
 ---
 
-## 5. Properties of Entities  
+## Setup
 
-| Entity         | Properties                                                                                  | Notes                           |  
-| -------------- | ------------------------------------------------------------------------------------------- | ------------------------------- | 
-| Ego Vehicle    | Position, velocity, acceleration, lane index, action space (lane-change, accelerate, brake) | Controlled by RL agent          |    
-| Other Vehicles | Position, velocity, lane, driving policy                                                    | Define traffic dynamics         |     
-| Road/Highway   | Number of lanes, length, speed limits, entry/exit ramps                                     | Defines environment constraints |     
+### 1. Create Virtual Environment
 
----
-
-## 6. Model Type  
-
-This simulation is primarily **Prescriptive**, since the goal is to design and evaluate strategies (via reinforcement learning policies) that autonomous vehicles can use to act safely and efficiently in traffic scenarios such as lane changing, merging, and overtaking.  
-
-It also has a **Predictive aspect**, as the trained agent implicitly forecasts the outcomes of its possible actions (whether a lane change will lead to a safe maneuver or a collision) in order to maximize long-term rewards.  
-
-It is not **Descriptive**, because the model is not focused on replicating current human driver behavior. Instead, it seeks to propose better strategies. Nor is it purely **Speculative**, since the experiments are grounded in realistic traffic environments and established simulation frameworks.  
-
-
-## 7. Metrics
-
-
-| **Entity** | **Metrics** | **Description** | **Notes** |
-|-------------|--------------|------------------|------------|
-| **Ego Vehicle** | **Collision Rate** | Fraction of episodes ending in collision. Measures driving safety. | Lower is better; key for safety evaluation. |
-|  | **Average Speed** | Mean longitudinal velocity over an episode. | Indicates efficiency; should respect speed limits. |
-|  | **Lane Change Frequency** | Number of lane changes per episode. | Too high → erratic driving; too low → passive driving. |
-|  | **Reward per Episode** | Total accumulated reward per episode. | Global performance indicator for RL agent. |
-|  | **Speed Limit Compliance** | Fraction of time speed ≤ limit. | Reflects adherence to road rules. |
-|  | **Time-to-Collision (TTC)** | Minimum time before potential collision. | Safety measure; can be averaged per episode. |
-|  | **Episode Duration** | Time until success or termination. | Lower means efficient, but not at cost of safety. |
-| **Other Vehicles** | **Traffic Density** | Number of vehicles per kilometer or per lane. | Affects task difficulty; can be parameterized. |
-|  | **Average Relative Speed** | Mean speed difference between ego and surrounding vehicles. | Influences overtake/merge difficulty. |
-|  | **Aggressiveness Index** | Tendency to accelerate/brake abruptly or follow too closely. | Defines behavior model complexity. |
-|  | **Traffic Flow Stability** | Standard deviation of vehicle speeds in the scene. | Lower = smoother traffic; high = more chaotic. |
-| **Road/Highway** | **Lane Utilization Ratio** | Percentage of time ego uses each lane. | Shows strategic lane use and distribution. |
-|  | **Speed Limit Compliance (Global)** | % of vehicles within legal speed range. | Indicates realism and rule adherence of simulation. |
-|  | **Average Throughput** | Number of vehicles passing a given point per unit time. | Reflects efficiency of entire environment. |
-|  | **Road Occupancy Rate** | Portion of road length occupied by vehicles. | Used to measure congestion level. |
-|  | **Scenario Completion Rate** | Fraction of successful runs (goal reached, no collision). | High completion = stable, effective simulation setup. |
-
-
-##  8. Indicators
-
-| **Indicator** | **Definition / Formula** | **What It Measures** | **Notes** |
-|----------------|---------------------------|----------------------|------------|
-| **Safety Index (SI)** | Combines collision rate, TTC, and safety violations:<br>`SI = w1*(1 - CollisionRate) + w2*(avg(TTC_norm)) + w3*(1 - ViolationRate)` | Overall driving safety and risk avoidance. | High SI → safer driving policy; weights tuned per experiment. |
-| **Efficiency Index (EI)** | Weighted combination of average speed and completion rate:<br>`EI = w1*(avg_speed / speed_limit) + w2*(CompletionRate)` | Measures traffic efficiency and goal achievement. | Balance between fast progress and task success. |
-| **Comfort Index (CI)** | Inverse of acceleration jerk and lane-change frequency:<br>`CI = 1 - norm(Jerk + α * LaneChangeFreq)` | Reflects smoothness and passenger comfort. | Higher = smoother, more human-like driving. |
-| **Rule Compliance Index (RCI)** | Based on adherence to traffic rules:<br>`RCI = 1 - (SpeedViolations + DistanceViolations) / TotalTime` | How well the agent respects traffic regulations. | Penalizes overspeeding and unsafe following. |
-| **Learning Efficiency (LE)** | `LE = PerformanceScore / TrainingSteps` | How quickly the RL model learns a stable, high-performing policy. | Allows comparison of RL algorithms (e.g., PPO vs SAC). |
-| **Traffic Flow Index (TFI)** | `TFI = Throughput / Density` | Reflects how well the overall traffic moves given congestion. | High TFI → good coordination and lane distribution. |
-| **Environment Stability Index (ESI)** | `ESI = 1 - std(vehicle_speeds) / mean(vehicle_speeds)` | Degree of stability and consistency in traffic flow. | Low variability indicates stable environment. |
-| **Safety–Efficiency Trade-off (SET)** | `SET = β1*(SafetyIndex) + β2*(EfficiencyIndex)` | Evaluates balance between safe and efficient driving. | Useful for comparing different policies’ trade-offs. |
-| **Global Performance Score (GPS)** | Aggregate score combining all KPIs:<br>`GPS = a*SI + b*EI + c*CI + d*RCI` | Single number summarizing overall system performance. | Weight coefficients can be tuned experimentally. |
-
-
-## 9. Data Requirements
-
-The simulation relies on both synthetic and benchmark traffic data to represent realistic driving conditions. The data required primarily concerns vehicle kinematics and traffic flow dynamics, which define how vehicles move and interact on a multi-lane highway.
-
-**Type of Data:**
-The simulation collects and processes information on vehicle position, velocity, acceleration, lane index, and inter-vehicle distances. Traffic flow variables such as vehicle density, average speed, and lane occupancy are also used to characterize the environment and evaluate system performance.
-
-**Sources:**
-Data is obtained from synthetic simulations using platforms such as HighwayEnv (Python).
-
-**Assumptions:**
-All vehicles comply with physical kinematic constraints (e.g., maximum acceleration and braking limits). Weather and road conditions remain constant within each simulation episode to isolate learning effects. Sensor perception is assumed to be ideal, meaning no measurement noise or occlusion is introduced at this stage of development.
-
-## 10. Methods & Tools
-
-To implement and evaluate the autonomous driving simulation, a combination of open-source simulation environments, reinforcement learning libraries, and analysis tools are employed.
-
-**Simulation Tools:**
-The project utilizes HighwayEnv for generating realistic highway traffic scenarios. The environment configuration follows the official highway-env baseline to ensure reproducible, high-quality results.
-
-**Programming Environment:**
-Development and experimentation are conducted in Python 3.10+, leveraging the Gymnasium interface for consistent agent–environment interactions. All training and evaluation use a shared configuration file (`env_config.py`) to guarantee consistency.
-
-**Reinforcement Learning:**
-Three algorithms are implemented using Stable-Baselines3:
-- **DQN** (Deep Q-Network) - Official baseline, 20k timesteps
-- **PPO** (Proximal Policy Optimization) - 100k timesteps with VecNormalize
-- **SAC** (Soft Actor-Critic) - 150k timesteps for exploration-exploitation balance
-
-**Evaluation and Visualization:**
-Performance metrics and training progress are monitored through TensorBoard and custom data analysis scripts. A comprehensive evaluation notebook (`highway_gym.ipynb`) provides:
-1. Episode simulation with visual rendering
-2. Performance indicator calculation (SI, EI, CI, RCI, GPS)
-3. Visualization charts
-4. Multi-model comparison
-
-**Configuration Management:**
-A centralized configuration system (`env_config.py`) ensures training and evaluation environments are identical, preventing common issues with environment mismatch.
-
----
-
-## 11. Repository Structure
-
-```
-/home/jmffelisberto/Desktop/ms/
-├── env_config.py              # Shared environment configuration
-├── training/
-│   ├── dqn.py                # DQN training (official baseline)
-│   ├── ppo.py                # PPO training
-│   └── sac.py                # SAC training
-├── highway_gym.ipynb         # Evaluation and analysis notebook
-├── dqn_agent/                # DQN model and results
-├── ppo_agent/                # PPO model and results
-├── sac_agent/                # SAC model and results
-├── BASELINE_SETUP.md         # Detailed setup documentation
-├── ENV_CONFIG_README.md      # Configuration explanation
-├── SETUP.md                  # Quick start guide
-└── README.md                 # This file
-```
-
----
-
-## 12. Quick Start
-
-### Installation
 ```bash
 python -m venv venv
 source venv/bin/activate
+```
+
+### 2. Install Dependencies
+
+```bash
 pip install stable-baselines3[extra] highway-env jupyterlab matplotlib pandas
 ```
 
-### Training
+---
+
+## Training the Models
+
+Train reinforcement learning agents from the project root:
+
 ```bash
-python training/dqn.py   # ~10-15 min (official baseline)
-python training/ppo.py   # ~20-30 min
-python training/sac.py   # ~30-40 min
+# DQN - Discrete actions (~15-20 min, 150k timesteps)
+python training/dqn.py
+
+# PPO - Discrete actions (~30-40 min, 400k timesteps)
+python training/ppo.py
+
+# SAC - Continuous actions (~30-40 min, 400k timesteps)
+python training/sac.py
+
+# TD3 - Continuous actions (~30-40 min, 400k timesteps)
+python training/td3.py
 ```
 
-### Evaluation
+Each script saves the trained model to its respective directory (`dqn_agent/`, `ppo_agent/`, `sac_agent/`, `td3_agent/`).
+
+**Action Spaces:**
+- **DQN & PPO**: Discrete actions (LANE_LEFT, IDLE, LANE_RIGHT, FASTER, SLOWER)
+- **SAC & TD3**: Continuous actions (steering angle + acceleration)
+
+---
+
+## Running Evaluation
+
+### Option 1: Jupyter Notebook (Recommended for Visualization)
+
 ```bash
 jupyter-lab
-# Open highway_gym.ipynb
-# Set AGENT_TYPE = "dqn" (or "ppo", "sac")
-# Run cells sequentially
 ```
 
-For detailed documentation, see `BASELINE_SETUP.md`.
+Open `model_evaluation.ipynb` and run the cells sequentially. The notebook provides:
+- Episode simulation with visual rendering
+- Performance indicator calculation (SI, EI, CI, RCI, GPS)
+- Multi-model comparison and visualization
+
+### Option 2: Command Line Evaluation
+
+```bash
+# Evaluate individual agents (20 episodes per run)
+python scripts/eval.py --agent dqn --episodes 20
+python scripts/eval.py --agent ppo --episodes 20
+python scripts/eval.py --agent sac --episodes 20
+python scripts/eval.py --agent td3 --episodes 20
+
+# With rendering enabled
+python scripts/eval.py --agent td3 --episodes 5 --render
+
+# Multiple runs for statistical analysis
+python scripts/eval.py --agent sac --episodes 20 --runs 3
+```
+
+### Aggregating Results and Plotting
+
+When we created the plots with the scripts ```aggregate_results.py```, ```plot_results.py``` and 
+```plot_indicators.py```, now placed in ```/scripts```, they were at the project root, so please consider the plots at the report (also at ```/final_results/plots```) as the definitive statistics for this project - we did not modify the scripts to handle this final codebase structure.
+
+
+---
+
+## Codebase Structure
+
+```
+├── training/                    # Model training scripts
+│   ├── dqn.py                   # DQN training (discrete, 150k steps)
+│   ├── ppo.py                   # PPO training (discrete, 400k steps)
+│   ├── sac.py                   # SAC training (continuous, 400k steps)
+│   └── td3.py                   # TD3 training (continuous, 400k steps)
+│
+├── scripts/                     # Evaluation and analysis utilities
+│   ├── env_config.py            # Shared environment configuration
+│   ├── reward_wrappers.py       # Custom reward shaping wrappers
+│   ├── eval.py                  # CLI evaluation script
+│   ├── aggregate_results.py     # Aggregate per-run summaries into mean/std
+│   ├── plot_results.py          # Plot raw metrics comparison
+│   ├── plot_indicators.py       # Plot performance indices (SI, EI, CI, GPS)
+│   └── run_all_evals.py         # Batch evaluation runner
+│
+├── model_evaluation.ipynb       # Interactive evaluation notebook
+│
+├── dqn_agent/                   # DQN model and evaluation results
+│   ├── model.zip                # Trained DQN model
+│   ├── instant_runs/            # Per-episode CSV logs
+│   └── summary/                 # Per-run summary statistics
+│
+├── ppo_agent/                   # PPO model and evaluation results
+│   ├── model.zip
+│   ├── vec_normalize.pkl        # Observation normalization stats
+│   ├── instant_runs/
+│   └── summary/
+│
+├── sac_agent/                   # SAC model and evaluation results
+│   ├── model.zip
+│   ├── instant_runs/
+│   ├── summary/
+│   └── tensorboard/             # Training logs
+│
+├── td3_agent/                   # TD3 model and evaluation results
+│   ├── model.zip
+│   ├── instant_runs/
+│   ├── summary/
+│   └── tensorboard/
+│
+├── final_results/               # Aggregated results and plots
+│   ├── data/                    # CSV files (mean, std, indicators)
+│   └── plots/                   # Generated comparison plots
+│
+├── model_comparison/            # Cross-model comparison CSVs
+│
+└── dev_docs/                    # Development documentation
+```
+
+---
